@@ -1,5 +1,6 @@
 import random
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models import Q
 from django.http import HttpResponse
@@ -31,6 +32,7 @@ def signature(g):
     return "|".join(str(x) for x in (g.phase, g.day, g.winner, ps.count(), ps.filter(alive=True).count(),
                                      len(votes), sum(votes), g.story.count(), mc))
 
+@login_required
 def home(request):
     if request.method == "POST":
         name = request.POST.get("name", "").strip()[:40]
@@ -135,6 +137,7 @@ def mc_action(request, g, a):
             n.is_mc = True
             n.save()
 
+@login_required
 def room(request, code):
     g = get_object_or_404(Game, code=code.upper())
     me = me_in(request, g)

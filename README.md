@@ -14,6 +14,11 @@ python manage.py runserver
 ```
 Open http://127.0.0.1:8000/. To let friends join on the same Wi-Fi, run `python manage.py runserver 0.0.0.0:8000` and share your computer's IP address.
 
+## Accounts and social login
+Players sign up with a username or use Google, Facebook or GitHub. Set these before running, then add each provider's callback URL (for example `http://127.0.0.1:8000/accounts/github/login/callback/`) in its developer console:
+`GOOGLE_ID, GOOGLE_SECRET, FACEBOOK_ID, FACEBOOK_SECRET, GITHUB_ID, GITHUB_SECRET`
+The username signup works without any keys.
+
 ## How a round goes
 1. The MC opens a room and shares the 4-letter code. Players join with a name.
 2. The MC picks how many of each role to use and deals. The MC sits that round out and can hand the mic to someone else between rounds.
