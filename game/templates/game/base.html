@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Mafia Night{% endblock %}</title>
+<style>
+:root{--card:#1e1622;--ink:#f2e9dc;--red:#c62f3b;--gold:#e0b04a}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.5 Georgia,serif;background:#120d14;color:var(--ink);transition:background .6s}
+body.night{background:#090d22}body.day{background:#2b1d0f}body.over{background:#1c0f14}
+nav{display:flex;gap:1rem;align-items:center;padding:.8rem 1.2rem;border-bottom:1px solid #ffffff1a}
+nav b{color:var(--gold);font-size:1.2rem;margin-right:auto}nav a{color:var(--ink);text-decoration:none}
+main{max-width:900px;margin:auto;padding:1rem}
+.card{background:var(--card);border-radius:14px;padding:1rem 1.2rem;margin:.8rem 0;box-shadow:0 4px 14px #0006}
+h1,h2,h3{margin:.2rem 0 .6rem}
+input,select,textarea,button,.btn{font:inherit;padding:.5rem .8rem;border-radius:10px;border:1px solid #ffffff30;background:#0004;color:var(--ink)}
+textarea{width:100%}
+button,.btn{background:var(--red);border:0;cursor:pointer;text-decoration:none;display:inline-block}
+.ghost{background:transparent;border:1px solid #ffffff40}.gold{background:var(--gold);color:#222}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.tag{padding:.1rem .6rem;border-radius:99px;font-size:.8rem;color:#fff}
+.Mafia{background:#c62f3b}.Citizen{background:#2f9a5f}.Neutral{background:#7d63c8}
+.dead{opacity:.45;text-decoration:line-through}
+.msg{padding:.6rem 1rem;border-radius:10px;background:#c62f3b55;margin:.5rem 0}
+.banner{text-align:center;font-size:1.3rem}
+.flip{cursor:pointer;text-align:center;padding:1.2rem;border:2px dashed var(--gold);border-radius:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.8rem}
+</style></head>
+<body class="{% block bodyclass %}{% endblock %}">
+<nav><b>🎭 Mafia Night</b><a href="{% url 'home' %}">Home</a><a href="{% url 'roles' %}">Roles</a><a href="{% url 'rules' %}">Rules</a></nav>
+<main>{% for m in messages %}<div class="msg">{{ m }}</div>{% endfor %}{% block content %}{% endblock %}</main>
+</body></html>

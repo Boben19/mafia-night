@@ -1,0 +1,56 @@
+{% extends 'game/base.html' %}{% block bodyclass %}{{ g.phase }}{% endblock %}{% block content %}
+<div class="card banner">Room <b style="color:var(--gold);letter-spacing:.3em">{{ g.code }}</b> ·
+{% if g.phase == 'lobby' %}Waiting for everyone to arrive{% elif g.phase == 'night' %}🌙 Night {{ g.day }}: eyes closed{% elif g.phase == 'day' %}☀️ Day {{ g.day }}: talk it out, then vote{% else %}🏁 Game over. Winner: {{ g.winner }}{% endif %}</div>
+
+{% if not me.is_mc %}
+ {% if me.role %}
+ <div class="card"><h3>Your secret role</h3>
+ <div class="flip" onclick="var s=this.querySelector('.s');s.hidden=!s.hidden"><span>Tap to peek, tap again to hide</span>
+ <div class="s" hidden><h2>{{ me.role.name }} <span class="tag {{ me.role.faction }}">{{ me.role.faction }}</span></h2><p>{{ me.role.ability }}</p>
+ {% if mafia %}<p>Your crew: {% for p in mafia %}{{ p.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}</div></div>
+ {% if not me.alive %}<p>You're out. Stay quiet and no hints, please.</p>{% endif %}</div>
+ {% elif g.phase == 'lobby' %}<div class="card">The MC hasn't dealt roles yet. Hang tight.</div>{% endif %}
+ {% if g.phase == 'day' and me.alive %}
+ <form method="post" class="card">{% csrf_token %}<input type="hidden" name="a" value="vote"><h3>Cast your vote</h3>
+ <div class="row"><select name="target"><option value="">Abstain</option>{% for p in players %}{% if not p.is_mc and p.alive %}<option value="{{ p.id }}" {% if me.vote_id == p.id %}selected{% endif %}>{{ p.name }}</option>{% endif %}{% endfor %}</select><button>Vote</button></div></form>
+ {% endif %}
+{% endif %}
+
+<div class="card"><h3>At the table</h3>
+{% for p in players %}<div class="row" style="justify-content:space-between;padding:.3rem 0">
+<span class="{% if not p.alive and not p.is_mc %}dead{% endif %}">{{ p.name }}{% if p == me %} (you){% endif %}{% if p.is_mc %} 🎤 MC, sitting this round out{% endif %}</span>
+<span class="row">
+{% if p.role and not p.is_mc and me.is_mc or p.role and not p.alive or p.role and g.phase == 'over' %}<span class="tag {{ p.role.faction }}">{{ p.role.name }}</span>{% endif %}
+{% if me.is_mc and not p.is_mc and g.phase == 'night' or me.is_mc and not p.is_mc and g.phase == 'day' %}<form method="post">{% csrf_token %}<input type="hidden" name="pid" value="{{ p.id }}"><button class="ghost" name="a" value="{% if p.alive %}kill{% else %}revive{% endif %}">{% if p.alive %}Take out{% else %}Bring back{% endif %}</button></form>{% endif %}
+{% if me.is_mc and not p.is_mc and g.phase == 'lobby' %}<form method="post">{% csrf_token %}<input type="hidden" name="pid" value="{{ p.id }}"><button class="ghost" name="a" value="pass_mc">Give them the mic</button></form>{% endif %}
+</span></div>{% endfor %}</div>
+
+{% if g.phase == 'day' %}<div class="card"><h3>Votes so far</h3>
+{% for p, n in tally %}<div>{{ p.name }}: <b>{{ n }}</b></div>{% empty %}<p>Nobody has voted yet.</p>{% endfor %}
+{% if me.is_mc %}<form method="post">{% csrf_token %}<button name="a" value="eliminate">Count it and send someone home</button></form>{% endif %}</div>{% endif %}
+
+{% if me.is_mc %}
+ {% if g.phase == 'lobby' %}
+ <form method="post" class="card">{% csrf_token %}<input type="hidden" name="a" value="deal"><h3>Deal the roles</h3>
+ <p>{{ players|length|add:"-1" }} players besides you. Pick how many of each role. Anyone left over becomes a plain Citizen.</p>
+ <div class="grid">{% for r in roles %}<label class="row"><input type="number" name="n_{{ r.id }}" min="0" max="9" value="0" style="width:4.5rem"><span class="tag {{ r.faction }}">{{ r.name }}</span></label>{% endfor %}</div><br>
+ <button class="gold">Deal and start Night 1</button> <a class="btn ghost" href="{% url 'role-add' %}">+ New role</a> <a class="btn ghost" href="{% url 'rule-add' %}">+ New rule</a></form>
+ {% elif g.phase != 'over' %}
+ <form method="post" class="card">{% csrf_token %}<h3>Your controls</h3>
+ {% if g.phase == 'night' %}<button name="a" value="day" class="gold">Wake the town (start Day)</button>{% else %}<button name="a" value="night">Send them to sleep (start Night)</button>{% endif %}</form>
+ <form method="post" class="card">{% csrf_token %}<h3>Narrate</h3><div class="row"><input name="text" maxlength="300" placeholder="Somebody didn't wake up this morning..." style="flex:1"><button name="a" value="say">Post</button></div></form>
+ <form method="post" class="card">{% csrf_token %}<h3>Special win (Cult, Jackal...)</h3><div class="row"><input name="text" maxlength="20" placeholder="Who won?"><button name="a" value="winner" class="ghost">End the game</button></div></form>
+ {% endif %}
+ {% if g.phase != 'lobby' %}<form method="post" class="card">{% csrf_token %}<button name="a" value="reset" class="ghost">Back to the lobby for a new round</button></form>{% endif %}
+{% endif %}
+
+<div class="card"><h3>The story so far</h3>{% for s in g.story.all|slice:":12" %}<p>{{ s.text }}</p>{% empty %}<p>Nothing yet.</p>{% endfor %}</div>
+<script>
+var sig="{{ sig }}",url="{% url 'ping' g.code %}";
+setInterval(async function(){
+ var el=document.activeElement;if(el&&["INPUT","TEXTAREA","SELECT"].includes(el.tagName))return;
+ if([].some.call(document.querySelectorAll("input[type=number]"),function(i){return +i.value>0}))return;
+ var s=await (await fetch(url)).text();if(s!==sig)location.reload();
+},3000);
+</script>
+{% endblock %}

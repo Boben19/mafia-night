@@ -1,0 +1,11 @@
+{% extends 'game/base.html' %}{% block content %}
+<div class="card"><div class="row" style="justify-content:space-between"><h1>{{ title }}</h1>{% if is_mc %}<a class="btn gold" href="{% url add_url %}">+ Add</a>{% endif %}</div>
+<form class="row"><input name="q" value="{{ request.GET.q }}" placeholder="Search..."><select name="sort_by">{% for k, v in sorts %}<option value="{{ k }}" {% if request.GET.sort_by == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select><button>Go</button></form></div>
+{% for o in object_list %}<div class="card"><div class="row" style="justify-content:space-between">
+<h3>{% firstof o.name o.title %}{% if o.faction %} <span class="tag {{ o.faction }}">{{ o.faction }}</span>{% endif %}</h3>
+{% if is_mc %}<span class="row"><a class="btn ghost" href="{% url edit_url o.pk %}">Edit</a><a class="btn ghost" href="{% url del_url o.pk %}">Delete</a></span>{% endif %}</div>
+<p>{% firstof o.ability o.text %}</p></div>{% empty %}<div class="card">Nothing matches that.</div>{% endfor %}
+{% if is_paginated %}<div class="row">{% if page_obj.has_previous %}<a class="btn ghost" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&sort_by={{ request.GET.sort_by }}">Prev</a>{% endif %}
+<span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+{% if page_obj.has_next %}<a class="btn ghost" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&sort_by={{ request.GET.sort_by }}">Next</a>{% endif %}</div>{% endif %}
+{% endblock %}
