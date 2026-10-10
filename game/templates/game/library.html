@@ -1,11 +1,45 @@
-{% extends 'game/base.html' %}{% block content %}
-<div class="card"><div class="row" style="justify-content:space-between"><h1>{{ title }}</h1>{% if is_mc %}<a class="btn gold" href="{% url add_url %}">+ Add</a>{% endif %}</div>
-<form class="row"><input name="q" value="{{ request.GET.q }}" placeholder="Search..."><select name="sort_by">{% for k, v in sorts %}<option value="{{ k }}" {% if request.GET.sort_by == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select><button>Go</button></form></div>
-{% for o in object_list %}<div class="card"><div class="row" style="justify-content:space-between">
-<h3>{% firstof o.name o.title %}{% if o.faction %} <span class="tag {{ o.faction }}">{{ o.faction }}</span>{% endif %}</h3>
-{% if is_mc %}<span class="row"><a class="btn ghost" href="{% url edit_url o.pk %}">Edit</a><a class="btn ghost" href="{% url del_url o.pk %}">Delete</a></span>{% endif %}</div>
-<p>{% firstof o.ability o.text %}</p></div>{% empty %}<div class="card">Nothing matches that.</div>{% endfor %}
-{% if is_paginated %}<div class="row">{% if page_obj.has_previous %}<a class="btn ghost" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&sort_by={{ request.GET.sort_by }}">Prev</a>{% endif %}
-<span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
-{% if page_obj.has_next %}<a class="btn ghost" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&sort_by={{ request.GET.sort_by }}">Next</a>{% endif %}</div>{% endif %}
+{% extends 'game/base.html' %}
+{% block title %}{{ title }} · Mafia Night{% endblock %}
+{% block content %}
+<div class="panel">
+  <div class="row between">
+    <h1 style="margin:0">{{ title }}</h1>
+    {% if is_mc %}<a class="btn gold" href="{% url add_url %}">Add new</a>{% endif %}
+  </div>
+  {% if not is_mc %}<p class="muted small" style="margin:.4rem 0 0">Only the MC can change these. Open a room to become one.</p>{% endif %}
+  <form class="search">
+    <input name="q" value="{{ request.GET.q }}" placeholder="Search" aria-label="Search">
+    <select name="sort_by" aria-label="Sort by">{% for k, v in sorts %}<option value="{{ k }}" {% if request.GET.sort_by == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
+    <button class="gold">Search</button>
+  </form>
+</div>
+
+<div class="shelf">
+{% for o in object_list %}
+  <article class="panel entry {{ o.faction }}">
+    <div class="row between" style="align-items:flex-start">
+      <h3 style="margin:0">{% firstof o.name o.title %}</h3>
+      {% if o.faction %}<span class="tag {{ o.faction }}">{{ o.faction }}</span>{% endif %}
+    </div>
+    <p style="margin-top:.5rem">{% firstof o.ability o.text %}</p>
+    {% if o.vote_weight > 1 or o.vote_immune %}
+    <div class="chips">
+      {% if o.vote_weight > 1 %}<span class="chip">Vote counts as {{ o.vote_weight }}</span>{% endif %}
+      {% if o.vote_immune %}<span class="chip">Can't be voted out</span>{% endif %}
+    </div>
+    {% endif %}
+    {% if is_mc %}<div class="row" style="margin-top:.7rem"><a class="btn ghost sm" href="{% url edit_url o.pk %}">Edit</a><a class="btn ghost sm" href="{% url del_url o.pk %}">Delete</a></div>{% endif %}
+  </article>
+{% empty %}
+  <div class="panel empty" style="grid-column:1/-1">Nothing matches that. Try a different word.</div>
+{% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pager">
+  {% if page_obj.has_previous %}<a class="btn ghost sm" href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&sort_by={{ request.GET.sort_by }}">Previous</a>{% endif %}
+  <span class="muted">Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn ghost sm" href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&sort_by={{ request.GET.sort_by }}">Next</a>{% endif %}
+</div>
+{% endif %}
 {% endblock %}

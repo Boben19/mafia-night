@@ -20,17 +20,14 @@ def me_in(request, g):
 
 def tally(g):
     w = {}
-    for p in g.players.filter(is_mc=False, alive=True).exclude(vote=None).select_related("role"):
+    for p in g.players.filter(is_mc=False, alive=True, vote__alive=True).exclude(vote=None).select_related("role"):
         w[p.vote_id] = w.get(p.vote_id, 0) + (p.role.vote_weight if p.role else 1)
     byid = {p.id: p for p in g.players.filter(id__in=w)}
     return sorted(((byid[i], n) for i, n in w.items()), key=lambda x: -x[1])
 
 def signature(g):
-    ps = g.players
-    votes = list(ps.exclude(vote=None).values_list("vote_id", flat=True))
-    mc = ps.filter(is_mc=True).values_list("id", flat=True).first()
-    return "|".join(str(x) for x in (g.phase, g.day, g.winner, ps.count(), ps.filter(alive=True).count(),
-                                     len(votes), sum(votes), g.story.count(), mc))
+    seats = "/".join(f"{p.id}:{int(p.alive)}:{p.vote_id or 0}:{int(p.is_mc)}" for p in g.players.all())
+    return "|".join(str(x) for x in (g.phase, g.day, g.winner, g.story.count(), seats))
 
 @login_required
 def home(request):
@@ -44,6 +41,8 @@ def home(request):
             p = Player.objects.create(game=g, name=name, is_mc=True)
         else:
             g = Game.objects.filter(code=request.POST.get("code", "").strip().upper()).first()
+            if g and g.players.filter(id=request.session.get(f"p_{g.code}")).exists():
+                return redirect("room", code=g.code)
             if not g or g.phase != "lobby":
                 messages.error(request, "No open room with that code. Double-check it with your MC.")
                 return redirect("home")
@@ -53,7 +52,7 @@ def home(request):
             p = Player.objects.create(game=g, name=name)
         request.session[f"p_{g.code}"] = p.id
         return redirect("room", code=g.code)
-    return render(request, "game/home.html")
+    return render(request, "game/home.html", {"role_count": Role.objects.count(), "rule_count": Rule.objects.count()})
 
 def finish(g):
     w = g.check_winner()
@@ -155,7 +154,10 @@ def room(request, code):
     mafia = []
     if me.role and me.role.faction == "Mafia":
         mafia = [p for p in players if p != me and p.role and p.role.faction == "Mafia"]
-    return render(request, "game/room.html", {"g": g, "me": me, "players": players, "tally": tally(g),
+    votes = tally(g)
+    top = votes[0][1] if votes else 1
+    bars = [(p, n, int(n * 100 / top)) for p, n in votes]
+    return render(request, "game/room.html", {"g": g, "me": me, "players": players, "tally": votes, "bars": bars,
         "mafia": mafia, "roles": Role.objects.order_by("faction", "name"), "sig": signature(g)})
 
 def ping(request, code):

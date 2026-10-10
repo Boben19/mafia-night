@@ -1,3 +1,8 @@
-{% extends 'game/base.html' %}{% block content %}
-<form method="post" class="card">{% csrf_token %}<h1>Delete "{{ object }}"?</h1><p>This can't be undone.</p><button>Yes, delete it</button> <a class="btn ghost" href="{{ view.success_url }}">Keep it</a></form>
+{% extends 'game/base.html' %}
+{% block content %}
+<form method="post" class="panel" style="max-width:520px;margin:2rem auto;text-align:center">{% csrf_token %}
+  <h1 style="font-size:1.9rem">Delete "{{ object }}"?</h1>
+  <p class="muted">This can't be undone.</p>
+  <div class="row" style="justify-content:center"><button>Yes, delete it</button><a class="btn ghost" href="{{ view.success_url }}">Keep it</a></div>
+</form>
 {% endblock %}

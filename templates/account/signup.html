@@ -1,0 +1,23 @@
+{% extends 'game/base.html' %}{% load socialaccount %}
+{% block title %}Sign up · Mafia Night{% endblock %}
+{% block content %}
+<div class="door">
+  {% include 'game/_hat.html' %}
+  <h1>Get your seat</h1>
+  <form method="post" class="panel">{% csrf_token %}
+    {{ form.as_p }}
+    {% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
+    <button class="gold block">Sign up</button>
+    <p class="muted small" style="margin:.9rem 0 0;text-align:center">Already have a seat? <a href="{% url 'account_login' %}">Log in</a>.</p>
+    {% get_providers as socialaccount_providers %}
+    {% if socialaccount_providers %}
+    <div class="or">or use</div>
+    <div class="socials">
+      {% for provider in socialaccount_providers %}
+      <a class="btn ghost sm" href="{% provider_login_url provider.id %}">{{ provider.name }}</a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'game/base.html' %}
+{% block title %}Log out · Mafia Night{% endblock %}
+{% block content %}
+<div class="door">
+  {% include 'game/_hat.html' %}
+  <h1>Leaving already?</h1>
+  <form method="post" class="panel" style="text-align:center">{% csrf_token %}
+    <p class="muted">The night is young.</p>
+    <div class="row" style="justify-content:center"><button>Log out</button><a class="btn ghost" href="{% url 'home' %}">Stay</a></div>
+  </form>
+</div>
+{% endblock %}

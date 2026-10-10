@@ -1,3 +1,8 @@
-{% extends 'game/base.html' %}{% block content %}
-<form method="post" class="card">{% csrf_token %}<h1>{{ view.title }}</h1>{{ form.as_p }}<button class="gold">Save</button> <a class="btn ghost" href="{{ view.success_url }}">Cancel</a></form>
+{% extends 'game/base.html' %}
+{% block content %}
+<form method="post" class="panel" style="max-width:640px;margin:1rem auto">{% csrf_token %}
+  <h1 style="font-size:2rem">{{ view.title }}</h1>
+  {{ form.as_p }}
+  <div class="row"><button class="gold">Save</button><a class="btn ghost" href="{{ view.success_url }}">Cancel</a></div>
+</form>
 {% endblock %}

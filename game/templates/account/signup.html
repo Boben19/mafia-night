@@ -1,8 +1,16 @@
-{% extends 'game/base.html' %}{% block content %}
+{% extends 'game/base.html' %}
+{% load socialaccount %}
+{% block content %}
 <div class="card" style="max-width:420px;margin:2rem auto"><h1>Sign up</h1>
 <form method="post">{% csrf_token %}{{ form.as_p }}<button>Sign up</button></form>
 <p>Already have a seat? Log in <a href="{% url 'account_login' %}" style="color:var(--gold)">here</a>.</p>
-{% load socialaccount %}<div class="row" style="margin-top:1rem">
-<a class="btn ghost" href="{% provider_login_url 'google' %}">Google</a>
-<a class="btn ghost" href="{% provider_login_url 'facebook' %}">Facebook</a>
-<a class="btn ghost" href="{% provider_login_url 'github' %}">GitHub</a></div></div>{% endblock %}
+{% get_providers as socialaccount_providers %}
+{% if socialaccount_providers %}
+<div class="row" style="margin-top:1rem">
+  {% for provider in socialaccount_providers %}
+    <a class="btn ghost" href="{% provider_login_url provider.id %}">{{ provider.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+</div>
+{% endblock %}
