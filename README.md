@@ -78,3 +78,6 @@ application = StaticFilesHandler(get_wsgi_application())
 `ALLOWED_HOSTS` already accepts `.pythonanywhere.com`. If you use Google/Facebook/GitHub login, open `/admin/`, go to **Sites**, and change `example.com` to your PythonAnywhere address.
 
 Authors: proposed by Jhon Grover Longsud, modified by Leeh Vann Joshua M. Lomocso.
+
+## Keys and guests
+Keys live in `.env` (copy `.env.example`), which is git-ignored. Real environment variables override it. Guests get a throwaway account from the login or signup page. Clean old ones in /admin when you like.

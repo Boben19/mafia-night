@@ -1,6 +1,19 @@
 import os
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+def _load_env(path):
+    # tiny .env reader so keys stay out of the code; real environment variables win
+    try:
+        for line in open(path, encoding="utf-8"):
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip().strip("\"'"))
+    except FileNotFoundError:
+        pass
+
+_load_env(BASE_DIR / ".env")
 SECRET_KEY = os.environ.get("SECRET_KEY", "change-this-before-you-deploy")
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", ".pythonanywhere.com"]

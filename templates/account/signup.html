@@ -19,5 +19,11 @@
     </div>
     {% endif %}
   </form>
+  <form method="post" action="{% url 'guest' %}" class="panel">{% csrf_token %}
+    {% if redirect_field_value %}<input type="hidden" name="next" value="{{ redirect_field_value }}">{% endif %}
+    <h2>Just visiting?</h2>
+    <p class="muted small">Hop in without an account. Your seat belongs to this browser, so if you clear it you lose the seat.</p>
+    <div class="row"><input name="name" placeholder="Nickname (optional)" maxlength="20" aria-label="Nickname" style="flex:1 1 9rem"><button class="ghost">Play as guest</button></div>
+  </form>
 </div>
 {% endblock %}

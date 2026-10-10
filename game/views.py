@@ -1,5 +1,9 @@
 import random
+import re, secrets
 from django.contrib import messages
+from django.contrib.auth import login as auth_login, get_user_model
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.db.models import Q
@@ -231,3 +235,21 @@ class RuleDelete(MCOnly, DeleteView):
     model = Rule
     template_name = "game/confirm.html"
     success_url = reverse_lazy("rules")
+
+
+@require_POST
+def guest_login(request):
+    """Let someone in without an account. They get a throwaway user tied to this browser."""
+    nick = re.sub(r"[^A-Za-z0-9 _-]", "", request.POST.get("name", "")).strip()[:20] or "Guest"
+    User = get_user_model()
+    while True:
+        username = f"{nick.replace(' ', '_')}-{secrets.token_hex(2)}"
+        if not User.objects.filter(username=username).exists():
+            break
+    user = User(username=username)
+    user.set_unusable_password()
+    user.save()
+    auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    nxt = request.POST.get("next", "")
+    ok = nxt and url_has_allowed_host_and_scheme(nxt, allowed_hosts={request.get_host()})
+    return redirect(nxt if ok else "home")
