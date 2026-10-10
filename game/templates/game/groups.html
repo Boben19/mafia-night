@@ -1,0 +1,25 @@
+{% extends 'game/base.html' %}
+{% block title %}Groups · Mafia Night{% endblock %}
+{% block content %}
+<div class="cols">
+  <form method="post" class="panel">{% csrf_token %}
+    <h2>Start a group</h2>
+    <p class="muted">A group is your regular crew. Open a table once and everybody in it can sit down with one tap.</p>
+    <div class="row"><input name="name" placeholder="Group name" maxlength="60" required style="flex:1 1 10rem"><input name="description" placeholder="What's it about? (optional)" maxlength="140" style="flex:2 1 12rem"><button class="gold">Create</button></div>
+  </form>
+  <form method="post" action="{% url 'group-join' %}" class="panel">{% csrf_token %}
+    <h2>Join with a code</h2>
+    <p class="muted">Got a six-character code from a friend? Type it in.</p>
+    <div class="row"><input name="code" class="codebox" placeholder="CODE" maxlength="6" autocomplete="off" required><button>Join</button></div>
+  </form>
+</div>
+<div class="shelf" style="margin-top:1rem">
+{% for g in mine %}
+  <a class="panel entry" href="{% url 'group' g.pk %}" style="text-decoration:none;color:inherit">
+    <h3 style="margin:0">{{ g.name }}</h3>
+    <p style="margin:.3rem 0">{{ g.description|default:"No description yet." }}</p>
+    <span class="muted small">{{ g.members.count }} member{{ g.members.count|pluralize }}</span>
+  </a>
+{% empty %}<div class="panel empty" style="grid-column:1/-1">You're not in a group yet. Start one above.</div>{% endfor %}
+</div>
+{% endblock %}

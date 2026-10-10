@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Game, Player, Role, Rule, Story
+from .models import Game, Player, Role, Rule, Story, MatchResult
 
 ROLE_FIELDS = ["name", "faction", "ability", "vote_weight", "vote_immune"]
 
@@ -20,7 +20,13 @@ def is_mc(request):
     return Player.objects.filter(id__in=ids, is_mc=True).exists()
 
 def me_in(request, g):
-    return g.players.select_related("role").filter(id=request.session.get(f"p_{g.code}")).first()
+    ps = g.players.select_related("role")
+    p = ps.filter(id=request.session.get(f"p_{g.code}")).first()
+    if not p and request.user.is_authenticated:
+        p = ps.filter(user=request.user).first()   # logged-in players can always find their seat again
+        if p:
+            request.session[f"p_{g.code}"] = p.id
+    return p
 
 def tally(g):
     w = {}
@@ -42,10 +48,10 @@ def home(request):
             return redirect("home")
         if "create" in request.POST:
             g = Game.objects.create()
-            p = Player.objects.create(game=g, name=name, is_mc=True)
+            p = Player.objects.create(game=g, name=name, is_mc=True, user=request.user)
         else:
             g = Game.objects.filter(code=request.POST.get("code", "").strip().upper()).first()
-            if g and g.players.filter(id=request.session.get(f"p_{g.code}")).exists():
+            if g and me_in(request, g):
                 return redirect("room", code=g.code)
             if not g or g.phase != "lobby":
                 messages.error(request, "No open room with that code. Double-check it with your MC.")
@@ -53,10 +59,25 @@ def home(request):
             if g.players.filter(name__iexact=name).exists():
                 messages.error(request, "Somebody already took that name, try another.")
                 return redirect("home")
-            p = Player.objects.create(game=g, name=name)
+            p = Player.objects.create(game=g, name=name, user=request.user)
         request.session[f"p_{g.code}"] = p.id
         return redirect("room", code=g.code)
     return render(request, "game/home.html", {"role_count": Role.objects.count(), "rule_count": Rule.objects.count()})
+
+def settle(g):
+    """Write everybody's result into their record when a game ends."""
+    w = g.winner
+    for p in g.players.select_related("role", "user"):
+        if not p.user_id:
+            continue
+        if p.is_mc:
+            MatchResult.objects.create(user=p.user, game_code=g.code, role_name="MC", winner=w, days=g.day, group=g.group)
+        elif p.role:
+            r, f = p.role.name.lower(), p.role.faction
+            won = (f == "Mafia" and w == "Mafia") or (f == "Citizen" and w == "Citizens") or \
+                  bool(w and (w.lower() in r or r in w.lower()))
+            MatchResult.objects.create(user=p.user, game_code=g.code, role_name=p.role.name, faction=f,
+                                       won=won, winner=w, days=g.day, group=g.group)
 
 def finish(g):
     w = g.check_winner()
@@ -64,6 +85,7 @@ def finish(g):
         g.winner, g.phase = w, "over"
         g.save()
         Story.objects.create(game=g, text=f"Game over. Winner: {w}!")
+        settle(g)
 
 def mc_action(request, g, a):
     P = request.POST
@@ -119,14 +141,16 @@ def mc_action(request, g, a):
         if p.role and p.role.name == "Jester":
             g.winner, g.phase = "Jester", "over"
             g.save()
+            settle(g)
             say("The Jester got exactly what they wanted. Winner: Jester!")
         else:
             finish(g)
     elif a == "say" and P.get("text", "").strip():
         say(P["text"].strip()[:300])
-    elif a == "winner" and P.get("text", "").strip():
+    elif a == "winner" and P.get("text", "").strip() and g.phase != "over":
         g.winner, g.phase = P["text"].strip()[:20], "over"
         g.save()
+        settle(g)
         say(f"Game over. Winner: {g.winner}!")
     elif a == "reset":
         players.update(role=None, alive=True, vote=None)
@@ -154,7 +178,7 @@ def room(request, code):
             me.vote = g.players.filter(id=request.POST.get("target") or 0, alive=True, is_mc=False).first()
             me.save()
         return redirect("room", code=g.code)
-    players = list(g.players.select_related("role"))
+    players = list(g.players.select_related("role", "user"))
     mafia = []
     if me.role and me.role.faction == "Mafia":
         mafia = [p for p in players if p != me and p.role and p.role.faction == "Mafia"]

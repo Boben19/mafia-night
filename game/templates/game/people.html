@@ -1,0 +1,16 @@
+{% extends 'game/base.html' %}
+{% block title %}Players · Mafia Night{% endblock %}
+{% block content %}
+<div class="panel">
+  <h1 style="margin:0 0 .6rem">Find players</h1>
+  <form class="search"><input name="q" value="{{ q }}" placeholder="Search by name" aria-label="Search players"><button class="gold">Search</button></form>
+  {% if q %}<ul class="plist" style="margin-top:1rem">
+    {% for x in found %}<li><span><i class="avatar" data-name="{{ x.username }}">{{ x.username|slice:":1"|upper }}</i><a href="{% url 'profile' x.username %}">{{ x.username }}</a></span></li>
+    {% empty %}<li class="muted">Nobody by that name.</li>{% endfor %}</ul>{% endif %}
+</div>
+<div class="panel" style="margin-top:1rem">
+  <h3>Most wins</h3>
+  <ul class="plist">{% for x in top %}<li><span><i class="avatar" data-name="{{ x.username }}">{{ x.username|slice:":1"|upper }}</i><a href="{% url 'profile' x.username %}">{{ x.username }}</a></span><b>{{ x.w }} win{{ x.w|pluralize }}</b></li>
+  {% empty %}<li class="muted">Nobody has won a game yet. Be the first.</li>{% endfor %}</ul>
+</div>
+{% endblock %}

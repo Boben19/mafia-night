@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views as v
+from . import views as v, social as s
 urlpatterns = [
     path("", v.home, name="home"),
     path("room/<code>/", v.room, name="room"),
@@ -12,4 +12,16 @@ urlpatterns = [
     path("rules/add/", v.RuleCreate.as_view(), name="rule-add"),
     path("rules/<int:pk>/", v.RuleUpdate.as_view(), name="rule-edit"),
     path("rules/<int:pk>/delete/", v.RuleDelete.as_view(), name="rule-delete"),
+    path("players/", s.people, name="people"),
+    path("u/<str:username>/", s.profile, name="profile"),
+    path("u/<str:username>/follow/", s.follow, name="follow"),
+    path("u/<str:username>/friend/", s.friend, name="friend"),
+    path("me/edit/", s.profile_edit, name="profile-edit"),
+    path("groups/", s.groups, name="groups"),
+    path("groups/join/", s.group_join, name="group-join"),
+    path("groups/<int:pk>/", s.group, name="group"),
+    path("groups/<int:pk>/leave/", s.group_leave, name="group-leave"),
+    path("groups/<int:pk>/delete/", s.group_delete, name="group-delete"),
+    path("groups/<int:pk>/host/", s.group_host, name="group-host"),
+    path("groups/<int:pk>/sit/<str:code>/", s.group_sit, name="group-sit"),
 ]

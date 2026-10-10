@@ -117,7 +117,7 @@
     <div class="seat{% if not p.alive and not p.is_mc %} out{% endif %}{% if p == me %} me{% endif %}">
       {% if p.is_mc %}<svg class="badge" aria-label="MC"><use href="#i-mic"/></svg>{% endif %}
       <div class="avatar" data-name="{{ p.name }}">{{ p.name|slice:":1"|upper }}</div>
-      <div class="name">{{ p.name }}</div>
+      <div class="name">{% if p.user %}<a href="{% url 'profile' p.user.username %}">{{ p.name }}</a>{% else %}{{ p.name }}{% endif %}</div>
       <div class="sub">{% if p == me %}you{% endif %}{% if p == me and p.is_mc %}, {% endif %}{% if p.is_mc %}MC, sitting out{% endif %}</div>
       {% if p.role and not p.is_mc and me.is_mc or p.role and not p.alive or p.role and g.phase == 'over' %}<span class="tag {{ p.role.faction }}">{{ p.role.name }}</span>{% endif %}
       {% if me.is_mc and not p.is_mc and g.phase == 'night' or me.is_mc and not p.is_mc and g.phase == 'day' %}

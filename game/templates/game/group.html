@@ -1,0 +1,31 @@
+{% extends 'game/base.html' %}
+{% block title %}{{ g.name }} · Mafia Night{% endblock %}
+{% block content %}
+<div class="panel">
+  <div class="row between"><h1 style="margin:0">{{ g.name }}</h1><span class="muted small">invite code <span class="codechip">{{ g.code }}</span></span></div>
+  <p class="muted" style="margin:.4rem 0 0">{{ g.description|default:"Share the invite code and your crew can join." }}</p>
+</div>
+<div class="cols">
+  <div class="panel">
+    <h3>Tonight's table</h3>
+    {% for gm in open %}
+      <div class="row between" style="margin-bottom:.5rem"><span>Room <b class="codechip" style="font-size:1.1rem">{{ gm.code }}</b> <span class="muted small">{{ gm.players.count }} seated</span></span>
+      <form method="post" action="{% url 'group-sit' g.pk gm.code %}">{% csrf_token %}<button class="gold">Sit down</button></form></div>
+    {% empty %}<p class="muted">No table is open right now.</p>{% endfor %}
+    <form method="post" action="{% url 'group-host' g.pk %}" style="margin-top:.6rem">{% csrf_token %}<button class="{% if open %}ghost{% else %}gold{% endif %} block">Open a table and be the MC</button></form>
+  </div>
+  <div class="panel">
+    <h3>Members</h3>
+    <ul class="plist">{% for m in members %}<li><span><i class="avatar" data-name="{{ m.username }}">{{ m.username|slice:":1"|upper }}</i><a href="{% url 'profile' m.username %}">{{ m.username }}</a></span>{% if m.pk == g.owner_id %}<span class="tag">owner</span>{% endif %}</li>{% endfor %}</ul>
+  </div>
+  <div class="panel">
+    <h3>Past games</h3>
+    <ul class="matchlist">{% for gm in history %}<li><span class="res">{{ gm.winner }} won</span><span class="when">{{ gm.updated_at|date:"M j" }} · room {{ gm.code }}</span></li>
+    {% empty %}<li class="muted">Nothing finished yet.</li>{% endfor %}</ul>
+  </div>
+</div>
+<div class="row" style="margin-top:1rem">
+  <form method="post" action="{% url 'group-leave' g.pk %}">{% csrf_token %}<button class="ghost">Leave group</button></form>
+  {% if is_owner %}<form method="post" action="{% url 'group-delete' g.pk %}" onsubmit="return confirm('Delete this group for everyone?')">{% csrf_token %}<button class="ghost">Delete group</button></form>{% endif %}
+</div>
+{% endblock %}

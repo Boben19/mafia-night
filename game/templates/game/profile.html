@@ -1,0 +1,76 @@
+{% extends 'game/base.html' %}
+{% block title %}{{ u.username }} · Mafia Night{% endblock %}
+{% block content %}
+<div class="panel pro">
+  <div class="avatar xl" style="--h:{{ p.hue }}">{% if p.emoji %}{{ p.emoji }}{% else %}{{ u.username|slice:":1"|upper }}{% endif %}</div>
+  <div class="info">
+    <h1>{{ u.username }}</h1>
+    <p class="bio">{% if p.bio %}{{ p.bio }}{% elif is_me %}Nothing here yet. Tell the table who you are.{% else %}Keeps their cards close.{% endif %}</p>
+    <div class="counts"><b>{{ followers }}</b> follower{{ followers|pluralize }} · <b>{{ following }}</b> following · <b>{{ friends|length }}</b> friend{{ friends|length|pluralize }}</div>
+    {% if is_me %}
+      <a class="btn gold" href="{% url 'profile-edit' %}">Edit profile</a>
+    {% else %}
+    <div class="row">
+      <form method="post" action="{% url 'follow' u.username %}">{% csrf_token %}<button class="{% if i_follow %}ghost{% else %}gold{% endif %}">{% if i_follow %}Following{% else %}Follow{% endif %}</button></form>
+      <form method="post" action="{% url 'friend' u.username %}" class="row">{% csrf_token %}
+        {% if fs == 'none' %}<button name="a" value="add">Add friend</button>
+        {% elif fs == 'sent' %}<button name="a" value="cancel" class="ghost">Request sent, cancel</button>
+        {% elif fs == 'received' %}<button name="a" value="accept" class="gold">Accept friend</button><button name="a" value="decline" class="ghost">Decline</button>
+        {% else %}<button name="a" value="remove" class="ghost">Friends, remove</button>{% endif %}
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if is_me and incoming %}
+<div class="panel" style="margin-top:1rem"><h3>Friend requests</h3>
+  <ul class="plist">{% for f in incoming %}
+    <li><a href="{% url 'profile' f.from_user.username %}">{{ f.from_user.username }}</a>
+    <form method="post" action="{% url 'friend' f.from_user.username %}" class="row">{% csrf_token %}<button name="a" value="accept" class="gold sm">Accept</button><button name="a" value="decline" class="ghost sm">Decline</button></form></li>
+  {% endfor %}</ul>
+</div>
+{% endif %}
+
+<div class="cols">
+  <div class="panel">
+    <h3>Progress</h3>
+    <div class="row between"><b style="font-size:1.2rem">{{ rec.rank }}</b><span class="muted small">{{ rec.xp }} points{% if rec.next %}, {{ rec.need }} more to reach {{ rec.next.1 }}{% endif %}</span></div>
+    <div class="track" style="margin:.5rem 0"><i style="--w:{{ rec.pct }}%"></i></div>
+    <p class="muted small" style="margin:0">Every game is a point and every win is two more.</p>
+    <div class="bigstats">
+      <div><b>{{ rec.played }}</b><span>played</span></div>
+      <div><b>{{ rec.wins }}</b><span>won</span></div>
+      <div><b>{{ rec.losses }}</b><span>lost</span></div>
+      <div><b>{{ rec.rate }}%</b><span>win rate</span></div>
+      <div><b>{{ rec.hosted }}</b><span>hosted</span></div>
+    </div>
+    <ul class="plist">{% for f, n, w in rec.by %}<li><span class="tag {{ f }}">{{ f }}</span><span class="muted">{{ w }} won of {{ n }}</span></li>{% endfor %}</ul>
+  </div>
+
+  <div class="panel">
+    <h3>Recent matches</h3>
+    <ul class="matchlist">
+    {% for r in recent %}
+      <li>
+        {% if r.role_name == 'MC' %}<span class="tag">MC</span><span class="res">Hosted</span>
+        {% else %}<span class="tag {{ r.faction }}">{{ r.role_name }}</span><span class="res {% if r.won %}win{% else %}loss{% endif %}">{% if r.won %}Won{% else %}Lost{% endif %}</span>{% endif %}
+        <span class="muted small">{{ r.winner }} took it{% if r.group %} · {{ r.group.name }}{% endif %}</span>
+        <span class="when">{{ r.created_at|date:"M j" }} · room {{ r.game_code }}</span>
+      </li>
+    {% empty %}<li class="muted">No finished games yet.</li>{% endfor %}
+    </ul>
+  </div>
+
+  <div class="panel">
+    <h3>Friends</h3>
+    <ul class="plist">{% for f in friends %}<li><span><i class="avatar" data-name="{{ f.username }}">{{ f.username|slice:":1"|upper }}</i><a href="{% url 'profile' f.username %}">{{ f.username }}</a></span></li>
+    {% empty %}<li class="muted">No friends added yet.</li>{% endfor %}</ul>
+  </div>
+
+  <div class="panel">
+    <h3>Groups</h3>
+    <ul class="plist">{% for g in groups %}<li>{{ g.name }}</li>{% empty %}<li class="muted">Not in any group.</li>{% endfor %}</ul>
+  </div>
+</div>
+{% endblock %}

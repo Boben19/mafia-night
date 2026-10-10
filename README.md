@@ -81,3 +81,6 @@ Authors: proposed by Jhon Grover Longsud, modified by Leeh Vann Joshua M. Lomocs
 
 ## Keys and guests
 Keys live in `.env` (copy `.env.example`), which is git-ignored. Real environment variables override it. Guests get a throwaway account from the login or signup page. Clean old ones in /admin when you like.
+
+## Profiles, friends and groups
+Every player has a page at /u/<name>/ with a rank, win record, recent matches, friends and groups. Players can edit their name, bio, emoji and color, follow each other, send friend requests, and make groups with a six-character invite code. A group member can open a table for the group and everybody else sits down with one tap. Results are saved when a game ends. After updating, run `python manage.py migrate` once.

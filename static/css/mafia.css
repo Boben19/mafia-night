@@ -454,3 +454,28 @@ body.allauth main td, body.allauth main th { padding: .3rem .4rem; text-align: l
 .wrapup svg { width: 54px; height: 54px; color: var(--brass); filter: drop-shadow(0 0 14px rgba(227,176,75,.6)); }
 .wrapup h2 { font-size: 2rem; margin: .3rem 0; }
 @media (max-width: 700px) { .orb { display: none; } }
+
+/* ------------------------------------------------ profiles and groups */
+.avatar.xl { width: 96px; height: 96px; font-size: 2.8rem; margin: 0; flex: none; }
+.pro { display: flex; gap: 1.2rem; align-items: center; flex-wrap: wrap; }
+.pro .info { flex: 1 1 14rem; }
+.pro h1 { margin: 0; font-size: 2rem; overflow-wrap: anywhere; }
+.pro .bio { color: var(--smoke); margin: .3rem 0 .6rem; }
+.pro .counts { color: var(--mist); font-size: .92rem; margin-bottom: .7rem; }
+.pro .counts b { color: var(--brass); }
+.cols { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 1rem; align-items: start; }
+.cols .panel { margin: 0; }
+.bigstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: .6rem; margin: .8rem 0; }
+.bigstats div { text-align: center; padding: .5rem; border: 1px solid var(--line); border-radius: 14px; }
+.bigstats b { display: block; font: 1.7rem var(--display); color: var(--brass); }
+.bigstats span { font-size: .8rem; color: var(--mist); }
+.matchlist { list-style: none; margin: 0; padding: 0; display: grid; gap: .45rem; }
+.matchlist li { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; padding: .4rem .6rem; border-radius: 12px; background: rgba(255,255,255,.04); }
+.matchlist .res { font-weight: 800; }
+.matchlist .win { color: var(--good); } .matchlist .loss { color: var(--bad); }
+.matchlist .when { margin-left: auto; color: var(--mist); font-size: .82rem; }
+.plist { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; }
+.plist a { color: var(--smoke); }
+.plist li { display: flex; gap: .6rem; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.plist .avatar { width: 34px; height: 34px; font-size: 1rem; margin: 0 .5rem 0 0; display: inline-grid; vertical-align: middle; border-width: 1px; }
+.codechip { font: 1.4rem var(--display); letter-spacing: .25em; color: var(--brass); }
